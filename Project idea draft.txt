@@ -1,0 +1,30 @@
+Student details structure:
+
+1) ID
+2) Name
+3) Section
+4) Course's particular number
+
+Functions:
+1) every student's total mark
+2) Sort
+3) Print function (bar graph)
+
+Modules:
+1) Course wise sorted list (section)
+
+Considerable:
+1) File I/O
+2) Singly linked list
+3) Quick sort
+4) Option choosing function by using up arrow, down arrow, right arrow or left arrow
+
+
+Notes:
+1) Automatically student data will be saved in a file as soon as the user adds a new student
+2) Remove the "Display student" option
+3) Remove the "Sort Students by Marks" option
+4) Whenever the user gonna add a new student it will be add in the linked list in a sorted way
+5) A sorted list of all the students (showing the top 3)
+6) At first select the section then it will show all the course's data 
+
