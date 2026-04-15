@@ -1,12 +1,7 @@
-/* #################### Smart Student Marks Organizer Project DIU #################### */
-/* ----------------- Developer: Md. Delower Sarker ----------------- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h> // Added for isalpha() and isspace() name validation
-
-/* ----------------- Structures (1) ----------------- */
+#include <ctype.h> 
 
 struct Student
 {
@@ -19,8 +14,6 @@ struct Student
 };
 
 struct Student *start = NULL;
-
-/* ----------------- File Operations (2) ----------------- */
 
 void saveData()
 {
@@ -76,10 +69,6 @@ void loadData()
     fclose(fp);
 }
 
-/* #################### SINGLY LINKED LIST & CORE OPERATIONS (4) #################### */
-
-/* ----------------- Insert Function (Sorted with Validation) (1) ----------------- */
-
 void addStudentSorted()
 {
     struct Student *newnode = (struct Student*)malloc(sizeof(struct Student));
@@ -88,7 +77,6 @@ void addStudentSorted()
 
     printf("\n--- [ ADD NEW CSE STUDENT ] ---\n");
 
-    // STEP 1: ID Validation
     while(1)
     {
         printf("Enter Student ID: ");
@@ -115,7 +103,6 @@ void addStudentSorted()
         else break;
     }
 
-    // STEP 2: Name Validation (Alphabets only)
     while(1)
     {
         printf("Enter Student Name: ");
@@ -124,7 +111,6 @@ void addStudentSorted()
         valid = 1;
         for(int i = 0; newnode->name[i] != '\0'; i++)
         {
-            // Allow alphabets, spaces, and standard dots (like Md.)
             if(!isalpha(newnode->name[i]) && !isspace(newnode->name[i]) && newnode->name[i] != '.')
             {
                 valid = 0;
@@ -136,11 +122,9 @@ void addStudentSorted()
         else break;
     }
 
-    // STEP 3: Section Input
     printf("Enter Section (Ex: 68_A, 68_B): ");
     scanf("%14s", newnode->section);
 
-    // STEP 4: Marks Validation (0 to 100)
     const char *course_names[] =
     {
         "Algorithms(CSE213)", "Algorithms Lab(CSE214)", "Engineering Mathematics(MAT211)",
@@ -160,7 +144,6 @@ void addStudentSorted()
                 continue;
             }
 
-            // Checking the 0 to 100 limit
             if(newnode->courses[c] < 0 || newnode->courses[c] > 100)
             {
                 printf("Error: Marks must be between 0 and 100. Please try again.\n");
@@ -174,7 +157,6 @@ void addStudentSorted()
 
     newnode->next = NULL;
 
-    // STEP 5: Sorted Insertion Logic (By ID)
     if (start == NULL || start->id >= newnode->id)
     {
         newnode->next = start;
@@ -196,8 +178,6 @@ void addStudentSorted()
 
     saveData();
 }
-
-/* ----------------- Section Explorer (1) ----------------- */
 
 void exploreBySection()
 {
@@ -229,8 +209,6 @@ void exploreBySection()
     printf("-----------------------------------------------------------------\n");
 }
 
-/* ----------------- Remove Student Function (NEW) ----------------- */
-
 void removeStudentByID()
 {
     int target_id;
@@ -244,7 +222,6 @@ void removeStudentByID()
         return;
     }
 
-    // Case 1: Empty List
     if(start == NULL)
     {
         printf("\nDatabase is empty. No students to remove.\n");
@@ -254,39 +231,33 @@ void removeStudentByID()
     struct Student *temp = start;
     struct Student *prev = NULL;
 
-    // Case 2: The head node holds the ID to be deleted
     if (temp != NULL && temp->id == target_id)
     {
-        start = temp->next;   // Change head
-        free(temp);           // Free old head
+        start = temp->next;  
+        free(temp);           
         printf("\n[v] Student with ID %d has been removed successfully!\n", target_id);
-        saveData();           // Update the file
+        saveData();
         return;
     }
 
-    // Case 3: Search for the ID to be deleted, keep track of previous node
     while (temp != NULL && temp->id != target_id)
     {
         prev = temp;
         temp = temp->next;
     }
 
-    // Case 4: ID was not present in linked list
     if (temp == NULL)
     {
         printf("\n[x] Student with ID %d not found in the database.\n", target_id);
         return;
     }
 
-    // Unlink the node from linked list and free memory
     prev->next = temp->next;
     free(temp);
 
     printf("\n[v] Student with ID %d has been removed successfully!\n", target_id);
-    saveData(); // Update the file
+    saveData(); 
 }
-
-/* #################### ALGORITHMS (QUICK SORT & BINARY SEARCH) (4) #################### */
 
 int countStudents()
 {
@@ -299,8 +270,6 @@ int countStudents()
     }
     return count;
 }
-
-/* ----------------- Quick Sort Implementation (Top 3) ----------------- */
 
 void swap(struct Student **a, struct Student **b)
 {
@@ -370,8 +339,6 @@ void viewTopThree()
     free(arr);
 }
 
-/* ----------------- Binary Search Student Finder ----------------- */
-
 int binarySearch(struct Student *arr[], int low, int high, int target)
 {
     while (low <= high)
@@ -423,8 +390,6 @@ void searchStudentByID()
     free(arr);
 }
 
-/* ----------------- Section Average Bar Graph ----------------- */
-
 void generateSectionBarGraph()
 {
     char sec[15];
@@ -471,7 +436,7 @@ void generateSectionBarGraph()
         float avg = (float)sum[c] / count;
         printf("%s [Avg: %5.1f] : ", course_names[c], avg);
 
-        int bars = (int)(avg / 2); // 1 bar represents 2 marks visually
+        int bars = (int)(avg / 2); 
         for(int b = 0; b < bars; b++)
         {
             printf("#");
@@ -479,8 +444,6 @@ void generateSectionBarGraph()
         printf("\n");
     }
 }
-
-/* #################### MAIN MENU (1) #################### */
 
 int main()
 {
@@ -525,7 +488,7 @@ int main()
         case 5:
             searchStudentByID();
             break;
-        case 6:                            // <--- ADDED CASE BLOCK HERE
+        case 6:
             removeStudentByID();
             break;
         case 0:
