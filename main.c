@@ -410,10 +410,10 @@ int binarySearch(struct Student *arr[], int low, int high, int target)
 
 void generateBarGraph()
 {
-    int target_id;
-    printf("\n--- [ MARKS VISUALIZER ] ---\n");
-    printf("Enter Student ID to search: ");
-    scanf("%d", &target_id);
+    char sec;
+    printf("\n--- [ OVERALL SECTION PERFORMANCE ] ---\n");
+    printf("Enter Section to view (e.g., A, B, C): ");
+    scanf(" %c", &sec);
 
     int n = countStudents();
     if (n == 0)
@@ -422,7 +422,6 @@ void generateBarGraph()
         return;
     }
 
-    // Since our linked list is ALWAYS sorted by ID, copying to array guarantees sorted array
     struct Student **arr = malloc(n * sizeof(struct Student *));
     struct Student *curr = start;
     for (int i = 0; i < n; i++)
@@ -431,28 +430,47 @@ void generateBarGraph()
         curr = curr->next;
     }
 
-    printf("\nExecuting Binary Search... ");
-    int index = binarySearch(arr, 0, n - 1, target_id);
+    // Calculate averages for each course in the section
+    double courseAverages[5] = {0};
+    int studentCount = 0;
 
-    if (index != -1)
+    for (int i = 0; i < n; i++)
     {
-        printf("Student Found!\n\n");
-        printf("[ Name: %s | Sec: %c | ID: %d ]\n\n", arr[index]->name, arr[index]->section, arr[index]->id);
-
-        for (int c = 0; c < 5; c++)
+        if (arr[i]->section == sec || arr[i]->section == sec - 32 || arr[i]->section == sec + 32)
         {
-            printf("%s [%3d] : ", courseCodes[c], arr[index]->courses[c]);
-            int bars = arr[index]->courses[c] / 2; // Scaling down for visual fit
-            for (int b = 0; b < bars; b++)
+            studentCount++;
+            for (int c = 0; c < 5; c++)
             {
-                printf("#"); // Using standard ASCII character for broad compatibility
+                courseAverages[c] += arr[i]->courses[c];
             }
-            printf("\n");
         }
     }
-    else
+
+    if (studentCount == 0)
     {
-        printf("Student not found!\n");
+        printf("\nNo students found in Section %c.\n", sec);
+        free(arr);
+        return;
+    }
+
+    // Calculate averages
+    for (int c = 0; c < 5; c++)
+    {
+        courseAverages[c] /= studentCount;
+    }
+
+    printf("\n--- [ SECTION %c: COURSE WISE AVERAGE PERFORMANCE ] ---\n", sec);
+    printf("Total Students in Section: %d\n\n", studentCount);
+
+    for (int c = 0; c < 5; c++)
+    {
+        printf("%s: %.2f\n", courseNames[c], courseAverages[c]);
+        int bars = (int)(courseAverages[c] / 2);
+        for (int b = 0; b < bars; b++)
+        {
+            printf("#");
+        }
+        printf("\n\n");
     }
 
     free(arr);
@@ -473,7 +491,7 @@ int main()
         printf(" [1] Add a New Student Record\n");
         printf(" [2] View Top 3 Students (Quick Sort)\n");
         printf(" [3] Explore Course Data by Section\n");
-        printf(" [4] Generate Student Marks Bar Graph (Binary Search)\n");
+        printf(" [4] Overall Section Performance\n");
         printf(" [0] Exit the Program\n");
         printf("======================================================\n");
         printf(" Select an option: ");
@@ -509,4 +527,3 @@ int main()
     }
     return 0;
 }
-    
