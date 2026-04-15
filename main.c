@@ -15,12 +15,26 @@ struct Student
     int id;
     char name[50];
     char section;
-    int courses[3];
+    int courses[5];
     int total_marks;
     struct Student *next;
 };
 
 struct Student *start = NULL;
+
+const char *courseNames[5] = {
+    "Discrete Mathematics (CSE212)",
+    "Engineering Mathematics (MAT211)",
+    "Bangladesh Studies (BNS101)",
+    "Algorithm (CSE213)",
+    "Algorithm Lab (CSE214)"};
+
+const char *courseCodes[5] = {
+    "CSE212",
+    "MAT211",
+    "BNS101",
+    "CSE213",
+    "CSE214"};
 
 int isValidName(const char *name)
 {
@@ -54,9 +68,9 @@ void saveData() // For auto-saving data when a new student is added
     struct Student *i = start;
     while (i != NULL)
     {
-        fprintf(fp, "%d;%s;%c;%d;%d;%d;%d\n",
+        fprintf(fp, "%d;%s;%c;%d;%d;%d;%d;%d;%d\n",
                 i->id, i->name, i->section,
-                i->courses[0], i->courses[1], i->courses[2],
+            i->courses[0], i->courses[1], i->courses[2], i->courses[3], i->courses[4],
                 i->total_marks);
         i = i->next;
     }
@@ -72,10 +86,10 @@ void loadData() // For loading all previous student data at startup
     char line[200];
     while (fgets(line, sizeof(line), fp))
     {
-        int id, c1, c2, c3, total;
+        int id, c1, c2, c3, c4, c5, total;
         char name[50], section;
 
-        if (sscanf(line, "%d;%49[^;];%c;%d;%d;%d;%d", &id, name, &section, &c1, &c2, &c3, &total) == 7)
+        if (sscanf(line, "%d;%49[^;];%c;%d;%d;%d;%d;%d;%d", &id, name, &section, &c1, &c2, &c3, &c4, &c5, &total) == 9)
         {
             struct Student *newnode = (struct Student *)malloc(sizeof(struct Student));
             newnode->id = id;
@@ -84,10 +98,39 @@ void loadData() // For loading all previous student data at startup
             newnode->courses[0] = c1;
             newnode->courses[1] = c2;
             newnode->courses[2] = c3;
+            newnode->courses[3] = c4;
+            newnode->courses[4] = c5;
             newnode->total_marks = total;
             newnode->next = NULL;
 
             // Reconstruct the list (already sorted from file)
+            if (start == NULL)
+            {
+                start = newnode;
+            }
+            else
+            {
+                struct Student *t = start;
+                while (t->next != NULL)
+                    t = t->next;
+                t->next = newnode;
+            }
+        }
+        else if (sscanf(line, "%d;%49[^;];%c;%d;%d;%d;%d", &id, name, &section, &c1, &c2, &c3, &total) == 7)
+        {
+            // Backward compatibility for older data files that stored 3 courses.
+            struct Student *newnode = (struct Student *)malloc(sizeof(struct Student));
+            newnode->id = id;
+            strcpy(newnode->name, name);
+            newnode->section = section;
+            newnode->courses[0] = c1;
+            newnode->courses[1] = c2;
+            newnode->courses[2] = c3;
+            newnode->courses[3] = 0;
+            newnode->courses[4] = 0;
+            newnode->total_marks = newnode->courses[0] + newnode->courses[1] + newnode->courses[2] + newnode->courses[3] + newnode->courses[4];
+            newnode->next = NULL;
+
             if (start == NULL)
             {
                 start = newnode;
@@ -163,14 +206,17 @@ void addStudentSorted() // Inserts a student keeping the list constantly sorted 
 
     // STEP 3: Marks & Total
     printf("\n-- Enter Course Marks --\n");
-    printf("Course 1: ");
-    scanf("%d", &newnode->courses[0]);
-    printf("Course 2: ");
-    scanf("%d", &newnode->courses[1]);
-    printf("Course 3: ");
-    scanf("%d", &newnode->courses[2]);
+    for (int c = 0; c < 5; c++)
+    {
+        printf("%s: ", courseNames[c]);
+        scanf("%d", &newnode->courses[c]);
+    }
 
-    newnode->total_marks = newnode->courses[0] + newnode->courses[1] + newnode->courses[2];
+    newnode->total_marks = 0;
+    for (int c = 0; c < 5; c++)
+    {
+        newnode->total_marks += newnode->courses[c];
+    }
     printf("\nCalculating Total Marks... Total: %d\n", newnode->total_marks);
 
     newnode->next = NULL;
@@ -211,8 +257,8 @@ void exploreBySection()
     printf("\nFetching data for Section %c...\n", sec);
     printf("Sorting course data...\n\n");
     printf("--- [ SECTION %c: COURSE WISE LIST ] ---\n", sec);
-    printf("%-6s | %-20s | %-4s | %-4s | %-4s | %-5s\n", "ID", "Name", "C-1", "C-2", "C-3", "Total");
-    printf("-----------------------------------------------------------\n");
+    printf("%-6s | %-20s | %-7s | %-7s | %-7s | %-7s | %-7s | %-5s\n", "ID", "Name", "CSE212", "MAT211", "BNS101", "CSE213", "CSE214", "Total");
+    printf("----------------------------------------------------------------------------------------------\n");
 
     struct Student *i = start;
     int found = 0;
@@ -220,8 +266,8 @@ void exploreBySection()
     {
         if (i->section == sec || i->section == sec - 32 || i->section == sec + 32) // Basic case insensitivity
         {
-            printf("%-6d | %-20s | %-4d | %-4d | %-4d | %-5d\n",
-                   i->id, i->name, i->courses[0], i->courses[1], i->courses[2], i->total_marks);
+             printf("%-6d | %-20s | %-7d | %-7d | %-7d | %-7d | %-7d | %-5d\n",
+                 i->id, i->name, i->courses[0], i->courses[1], i->courses[2], i->courses[3], i->courses[4], i->total_marks);
             found = 1;
         }
         i = i->next;
@@ -229,7 +275,7 @@ void exploreBySection()
 
     if (!found)
         printf("No students found in Section %c.\n", sec);
-    printf("-----------------------------------------------------------\n");
+    printf("----------------------------------------------------------------------------------------------\n");
 }
 
 /* #################### ALGORITHMS (QUICK SORT & BINARY SEARCH) (4) #################### */
@@ -368,9 +414,9 @@ void generateBarGraph()
         printf("Student Found!\n\n");
         printf("[ Name: %s | Sec: %c | ID: %d ]\n\n", arr[index]->name, arr[index]->section, arr[index]->id);
 
-        for (int c = 0; c < 3; c++)
+        for (int c = 0; c < 5; c++)
         {
-            printf("Course %d [%3d] : ", c + 1, arr[index]->courses[c]);
+            printf("%s [%3d] : ", courseCodes[c], arr[index]->courses[c]);
             int bars = arr[index]->courses[c] / 2; // Scaling down for visual fit
             for (int b = 0; b < bars; b++)
             {
