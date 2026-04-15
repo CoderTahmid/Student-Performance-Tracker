@@ -57,6 +57,32 @@ int isValidName(const char *name)
     return hasLetter;
 }
 
+int readValidMark(const char *courseName)
+{
+    int mark;
+
+    while (1)
+    {
+        printf("%s: ", courseName);
+
+        if (scanf("%d", &mark) != 1)
+        {
+            while (getchar() != '\n')
+                ;
+            printf("Invalid input! Please enter a number between 0 and 100.\n");
+            continue;
+        }
+
+        if (mark < 0 || mark > 100)
+        {
+            printf("Invalid marks! Marks must be between 0 and 100.\n");
+            continue;
+        }
+
+        return mark;
+    }
+}
+
 /* ----------------- File Operations (2) ----------------- */
 
 void saveData() // For auto-saving data when a new student is added
@@ -208,8 +234,7 @@ void addStudentSorted() // Inserts a student keeping the list constantly sorted 
     printf("\n-- Enter Course Marks --\n");
     for (int c = 0; c < 5; c++)
     {
-        printf("%s: ", courseNames[c]);
-        scanf("%d", &newnode->courses[c]);
+        newnode->courses[c] = readValidMark(courseNames[c]);
     }
 
     newnode->total_marks = 0;
