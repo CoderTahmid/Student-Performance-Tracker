@@ -1,12 +1,10 @@
-/* #################### Student Marks Organizer Project DIU #################### */
+/* #################### Smart Student Marks Organizer Project DIU #################### */
 /* ----------------- Developer: Md. Delower Sarker ----------------- */
-
-/* ----------------- Libraries (3) ----------------- */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
+#include <ctype.h> // Added for isalpha() and isspace() name validation
 
 /* ----------------- Structures (1) ----------------- */
 
@@ -14,7 +12,7 @@ struct Student
 {
     int id;
     char name[50];
-    char section;
+    char section[15];
     int courses[5];
     int total_marks;
     struct Student *next;
@@ -22,105 +20,42 @@ struct Student
 
 struct Student *start = NULL;
 
-const char *courseNames[5] = {
-    "Discrete Mathematics (CSE212)",
-    "Engineering Mathematics (MAT211)",
-    "Bangladesh Studies (BNS101)",
-    "Algorithm (CSE213)",
-    "Algorithm Lab (CSE214)"};
-
-const char *courseCodes[5] = {
-    "CSE212",
-    "MAT211",
-    "BNS101",
-    "CSE213",
-    "CSE214"};
-
-int isValidName(const char *name)
-{
-    int hasLetter = 0;
-
-    for (int i = 0; name[i] != '\0'; i++)
-    {
-        unsigned char ch = (unsigned char)name[i];
-
-        if (isalpha(ch))
-        {
-            hasLetter = 1;
-        }
-        else if (!isspace(ch))
-        {
-            return 0;
-        }
-    }
-
-    return hasLetter;
-}
-
-int readValidMark(const char *courseName)
-{
-    int mark;
-
-    while (1)
-    {
-        printf("%s: ", courseName);
-
-        if (scanf("%d", &mark) != 1)
-        {
-            while (getchar() != '\n')
-                ;
-            printf("Invalid input! Please enter a number between 0 and 100.\n");
-            continue;
-        }
-
-        if (mark < 0 || mark > 100)
-        {
-            printf("Invalid marks! Marks must be between 0 and 100.\n");
-            continue;
-        }
-
-        return mark;
-    }
-}
-
 /* ----------------- File Operations (2) ----------------- */
 
-void saveData() // For auto-saving data when a new student is added
+void saveData()
 {
-    FILE *fp = fopen("students_db.txt", "w");
-    if (fp == NULL)
-        return;
+    FILE *fp = fopen("cse_students_db.txt", "w");
+    if(fp == NULL) return;
 
     struct Student *i = start;
-    while (i != NULL)
+    while(i != NULL)
     {
-        fprintf(fp, "%d;%s;%c;%d;%d;%d;%d;%d;%d\n",
+        fprintf(fp, "%d;%s;%s;%d;%d;%d;%d;%d;%d\n",
                 i->id, i->name, i->section,
-            i->courses[0], i->courses[1], i->courses[2], i->courses[3], i->courses[4],
-                i->total_marks);
+                i->courses[0], i->courses[1], i->courses[2],
+                i->courses[3], i->courses[4], i->total_marks);
         i = i->next;
     }
     fclose(fp);
 }
 
-void loadData() // For loading all previous student data at startup
+void loadData()
 {
-    FILE *fp = fopen("students_db.txt", "r");
-    if (fp == NULL)
-        return;
+    FILE *fp = fopen("cse_students_db.txt", "r");
+    if(fp == NULL) return;
 
     char line[200];
-    while (fgets(line, sizeof(line), fp))
+    while(fgets(line, sizeof(line), fp))
     {
         int id, c1, c2, c3, c4, c5, total;
-        char name[50], section;
+        char name[50], section[15];
 
-        if (sscanf(line, "%d;%49[^;];%c;%d;%d;%d;%d;%d;%d", &id, name, &section, &c1, &c2, &c3, &c4, &c5, &total) == 9)
+        if(sscanf(line, "%d;%49[^;];%14[^;];%d;%d;%d;%d;%d;%d", &id, name, section, &c1, &c2, &c3, &c4, &c5, &total) == 9)
         {
-            struct Student *newnode = (struct Student *)malloc(sizeof(struct Student));
+            struct Student *newnode = (struct Student*)malloc(sizeof(struct Student));
             newnode->id = id;
             strcpy(newnode->name, name);
-            newnode->section = section;
+            strcpy(newnode->section, section);
             newnode->courses[0] = c1;
             newnode->courses[1] = c2;
             newnode->courses[2] = c3;
@@ -129,43 +64,11 @@ void loadData() // For loading all previous student data at startup
             newnode->total_marks = total;
             newnode->next = NULL;
 
-            // Reconstruct the list (already sorted from file)
-            if (start == NULL)
-            {
-                start = newnode;
-            }
+            if(start == NULL) start = newnode;
             else
             {
                 struct Student *t = start;
-                while (t->next != NULL)
-                    t = t->next;
-                t->next = newnode;
-            }
-        }
-        else if (sscanf(line, "%d;%49[^;];%c;%d;%d;%d;%d", &id, name, &section, &c1, &c2, &c3, &total) == 7)
-        {
-            // Backward compatibility for older data files that stored 3 courses.
-            struct Student *newnode = (struct Student *)malloc(sizeof(struct Student));
-            newnode->id = id;
-            strcpy(newnode->name, name);
-            newnode->section = section;
-            newnode->courses[0] = c1;
-            newnode->courses[1] = c2;
-            newnode->courses[2] = c3;
-            newnode->courses[3] = 0;
-            newnode->courses[4] = 0;
-            newnode->total_marks = newnode->courses[0] + newnode->courses[1] + newnode->courses[2] + newnode->courses[3] + newnode->courses[4];
-            newnode->next = NULL;
-
-            if (start == NULL)
-            {
-                start = newnode;
-            }
-            else
-            {
-                struct Student *t = start;
-                while (t->next != NULL)
-                    t = t->next;
+                while(t->next != NULL) t = t->next;
                 t->next = newnode;
             }
         }
@@ -175,33 +78,32 @@ void loadData() // For loading all previous student data at startup
 
 /* #################### SINGLY LINKED LIST & CORE OPERATIONS (4) #################### */
 
-/* ----------------- Insert Function (Sorted) (1) ----------------- */
+/* ----------------- Insert Function (Sorted with Validation) (1) ----------------- */
 
-void addStudentSorted() // Inserts a student keeping the list constantly sorted by ID
+void addStudentSorted()
 {
-    struct Student *newnode = (struct Student *)malloc(sizeof(struct Student));
+    struct Student *newnode = (struct Student*)malloc(sizeof(struct Student));
     struct Student *temp;
-    int exists;
+    int exists, valid;
 
-    printf("\n--- [ ADD NEW STUDENT ] ---\n");
+    printf("\n--- [ ADD NEW CSE STUDENT ] ---\n");
 
-    // STEP 1: ID Validation Loop
-    while (1)
+    // STEP 1: ID Validation
+    while(1)
     {
         printf("Enter Student ID: ");
-        if (scanf("%d", &newnode->id) != 1)
+        if(scanf("%d", &newnode->id) != 1)
         {
-            while (getchar() != '\n')
-                ;
+            while(getchar()!='\n');
             printf("Invalid input! Please enter a number.\n");
             continue;
         }
 
         temp = start;
         exists = 0;
-        while (temp != NULL)
+        while(temp != NULL)
         {
-            if (temp->id == newnode->id)
+            if(temp->id == newnode->id)
             {
                 exists = 1;
                 break;
@@ -209,44 +111,70 @@ void addStudentSorted() // Inserts a student keeping the list constantly sorted 
             temp = temp->next;
         }
 
-        if (exists)
-            printf("Error: This ID already exists! Please enter a unique ID.\n");
-        else
-            break;
+        if(exists) printf("Error: This ID already exists! Please enter a unique ID.\n");
+        else break;
     }
 
-    // STEP 2: General Info
-    while (1)
+    // STEP 2: Name Validation (Alphabets only)
+    while(1)
     {
         printf("Enter Student Name: ");
-        scanf(" %49[^\n]", newnode->name);
+        scanf(" %[^\n]", newnode->name);
 
-        if (isValidName(newnode->name))
-            break;
+        valid = 1;
+        for(int i = 0; newnode->name[i] != '\0'; i++)
+        {
+            // Allow alphabets, spaces, and standard dots (like Md.)
+            if(!isalpha(newnode->name[i]) && !isspace(newnode->name[i]) && newnode->name[i] != '.')
+            {
+                valid = 0;
+                break;
+            }
+        }
 
-        printf("Invalid name! Please use letters and spaces only.\n");
+        if(!valid) printf("Error: Name must contain only letters and spaces (Ex: Mohammad).\n");
+        else break;
     }
 
-    printf("Enter Section (e.g., A, B, C): ");
-    scanf(" %c", &newnode->section);
+    // STEP 3: Section Input
+    printf("Enter Section (Ex: 68_A, 68_B): ");
+    scanf("%14s", newnode->section);
 
-    // STEP 3: Marks & Total
-    printf("\n-- Enter Course Marks --\n");
-    for (int c = 0; c < 5; c++)
+    // STEP 4: Marks Validation (0 to 100)
+    const char *course_names[] =
     {
-        newnode->courses[c] = readValidMark(courseNames[c]);
+        "Algorithms(CSE213)", "Algorithms Lab(CSE214)", "Engineering Mathematics(MAT211)",
+        "Discrete Mathematics(CSE212)", "Bangladesh Studies(BNS101)"
+    };
+
+    printf("\n-- Enter Course Marks (0 - 100) --\n");
+    for(int c = 0; c < 5; c++)
+    {
+        while(1)
+        {
+            printf("%s: ", course_names[c]);
+            if(scanf("%d", &newnode->courses[c]) != 1)
+            {
+                while(getchar()!='\n');
+                printf("Invalid input! Please enter a number.\n");
+                continue;
+            }
+
+            // Checking the 0 to 100 limit
+            if(newnode->courses[c] < 0 || newnode->courses[c] > 100)
+            {
+                printf("Error: Marks must be between 0 and 100. Please try again.\n");
+            }
+            else break;
+        }
     }
 
-    newnode->total_marks = 0;
-    for (int c = 0; c < 5; c++)
-    {
-        newnode->total_marks += newnode->courses[c];
-    }
-    printf("\nCalculating Total Marks... Total: %d\n", newnode->total_marks);
+    newnode->total_marks = newnode->courses[0] + newnode->courses[1] + newnode->courses[2] + newnode->courses[3] + newnode->courses[4];
+
 
     newnode->next = NULL;
 
-    // STEP 4: Sorted Insertion Logic (By ID)
+    // STEP 5: Sorted Insertion Logic (By ID)
     if (start == NULL || start->id >= newnode->id)
     {
         newnode->next = start;
@@ -263,55 +191,108 @@ void addStudentSorted() // Inserts a student keeping the list constantly sorted 
         current->next = newnode;
     }
 
-    printf("\n[v] Student added to the linked list successfully!\n");
-    printf("[v] Inserted in sorted order by ID.\n");
-    printf("[v] Data auto-saved to 'students_db.txt'.\n");
+    printf("\n Student added successfully!\n");
 
-    saveData(); // Auto-save trigger
+
+    saveData();
 }
 
 /* ----------------- Section Explorer (1) ----------------- */
 
 void exploreBySection()
 {
-    char sec;
-    printf("\n--- [ SECTION EXPLORER ] ---\n");
-    printf("Enter Section to view (e.g., A, B, C): ");
-    scanf(" %c", &sec);
+    char sec[15];
+    printf("\n--- [ CSE SECTION EXPLORER ] ---\n");
+    printf("Enter Section to view ( Ex: 68_A): ");
+    scanf("%14s", sec);
 
-    printf("\nFetching data for Section %c...\n", sec);
-    printf("Sorting course data...\n\n");
-    printf("--- [ SECTION %c: COURSE WISE LIST ] ---\n", sec);
-    printf("%-6s | %-20s | %-7s | %-7s | %-7s | %-7s | %-7s | %-5s\n", "ID", "Name", "CSE212", "MAT211", "BNS101", "CSE213", "CSE214", "Total");
-    printf("----------------------------------------------------------------------------------------------\n");
+    printf("\nFetching data for Section %s...\n", sec);
+    printf("--- [ SECTION %s: COURSE WISE LIST ] ---\n", sec);
+
+    printf("%-6s | %-18s | %-3s | %-3s | %-3s | %-3s | %-3s | %-5s\n", "ID", "Name", "Alg", "Alg_L", "EM", "DM", "BNS", "Total");
+    printf("-----------------------------------------------------------------\n");
 
     struct Student *i = start;
     int found = 0;
-    while (i != NULL)
+    while(i != NULL)
     {
-        if (i->section == sec || i->section == sec - 32 || i->section == sec + 32) // Basic case insensitivity
+        if(strcmp(i->section, sec) == 0)
         {
-             printf("%-6d | %-20s | %-7d | %-7d | %-7d | %-7d | %-7d | %-5d\n",
-                 i->id, i->name, i->courses[0], i->courses[1], i->courses[2], i->courses[3], i->courses[4], i->total_marks);
+            printf("%-6d | %-18s | %-3d | %-5d | %-3d | %-3d | %-3d | %-5d\n",
+                   i->id, i->name, i->courses[0], i->courses[1], i->courses[2], i->courses[3], i->courses[4], i->total_marks);
             found = 1;
         }
         i = i->next;
     }
 
-    if (!found)
-        printf("No students found in Section %c.\n", sec);
-    printf("----------------------------------------------------------------------------------------------\n");
+    if(!found) printf("No students found in Section %s.\n", sec);
+    printf("-----------------------------------------------------------------\n");
+}
+
+/* ----------------- Remove Student Function (NEW) ----------------- */
+
+void removeStudentByID()
+{
+    int target_id;
+    printf("\n--- [ REMOVE STUDENT RECORD ] ---\n");
+    printf("Enter Student ID to remove: ");
+
+    if(scanf("%d", &target_id) != 1)
+    {
+        while(getchar()!='\n');
+        printf("Invalid input! Please enter a valid ID number.\n");
+        return;
+    }
+
+    // Case 1: Empty List
+    if(start == NULL)
+    {
+        printf("\nDatabase is empty. No students to remove.\n");
+        return;
+    }
+
+    struct Student *temp = start;
+    struct Student *prev = NULL;
+
+    // Case 2: The head node holds the ID to be deleted
+    if (temp != NULL && temp->id == target_id)
+    {
+        start = temp->next;   // Change head
+        free(temp);           // Free old head
+        printf("\n[v] Student with ID %d has been removed successfully!\n", target_id);
+        saveData();           // Update the file
+        return;
+    }
+
+    // Case 3: Search for the ID to be deleted, keep track of previous node
+    while (temp != NULL && temp->id != target_id)
+    {
+        prev = temp;
+        temp = temp->next;
+    }
+
+    // Case 4: ID was not present in linked list
+    if (temp == NULL)
+    {
+        printf("\n[x] Student with ID %d not found in the database.\n", target_id);
+        return;
+    }
+
+    // Unlink the node from linked list and free memory
+    prev->next = temp->next;
+    free(temp);
+
+    printf("\n[v] Student with ID %d has been removed successfully!\n", target_id);
+    saveData(); // Update the file
 }
 
 /* #################### ALGORITHMS (QUICK SORT & BINARY SEARCH) (4) #################### */
-
-/* ----------------- Utilities for Algorithms (1) ----------------- */
 
 int countStudents()
 {
     int count = 0;
     struct Student *i = start;
-    while (i != NULL)
+    while(i != NULL)
     {
         count++;
         i = i->next;
@@ -319,161 +300,184 @@ int countStudents()
     return count;
 }
 
-/* ----------------- Quick Sort Implementation (Top 3) (2) ----------------- */
+/* ----------------- Quick Sort Implementation (Top 3) ----------------- */
 
 void swap(struct Student **a, struct Student **b)
 {
-    struct Student *t = *a;
+    struct Student *temp = *a;
     *a = *b;
-    *b = t;
+    *b = temp;
 }
 
 int partition(struct Student *arr[], int low, int high)
 {
-    int pivot = arr[high]->total_marks;
-    int i = (low - 1);
+    int pivot = arr[low]->total_marks;
+    int i = low;
+    int j = high;
 
-    for (int j = low; j <= high - 1; j++)
+    while (i < j)
     {
-        if (arr[j]->total_marks >= pivot) // Descending order
-        {
-            i++;
-            swap(&arr[i], &arr[j]);
-        }
+        while (arr[i]->total_marks >= pivot && i <= high - 1) i++;
+        while (arr[j]->total_marks < pivot && j >= low + 1) j--;
+        if (i < j) swap(&arr[i], &arr[j]);
     }
-    swap(&arr[i + 1], &arr[high]);
-    return (i + 1);
+    swap(&arr[low], &arr[j]);
+    return j;
 }
 
 void quickSort(struct Student *arr[], int low, int high)
 {
     if (low < high)
     {
-        int pi = partition(arr, low, high);
-        quickSort(arr, low, pi - 1);
-        quickSort(arr, pi + 1, high);
+        int pivot_idx = partition(arr, low, high);
+        quickSort(arr, low, pivot_idx - 1);
+        quickSort(arr, pivot_idx + 1, high);
     }
 }
 
 void viewTopThree()
 {
     int n = countStudents();
-    if (n == 0)
+    if(n == 0)
     {
         printf("\nNo student records available.\n");
         return;
     }
 
-    // Dynamic array of pointers to the linked list nodes
-    struct Student **arr = malloc(n * sizeof(struct Student *));
+    struct Student **arr = malloc(n * sizeof(struct Student*));
     struct Student *curr = start;
-    for (int i = 0; i < n; i++)
+    for(int i = 0; i < n; i++)
     {
         arr[i] = curr;
         curr = curr->next;
     }
 
-    printf("\n--- [ HALL OF FAME: TOP 3 STUDENTS ] ---\n");
+    printf("\n--- [ HALL OF FAME: TOP 3 CSE STUDENTS ] ---\n");
     printf("Applying Quick Sort algorithm...\n\n");
 
     quickSort(arr, 0, n - 1);
 
-    printf("%-5s | %-6s | %-20s | %-3s | %-5s\n", "RANK", "ID", "NAME", "SEC", "TOTAL");
-    printf("---------------------------------------------------------\n");
+    printf("%-5s | %-6s | %-20s | %-7s | %-5s\n", "RANK", "ID", "NAME", "SECTION", "TOTAL");
+    printf("------------------------------------------------------------\n");
 
     int limit = (n < 3) ? n : 3;
-    for (int i = 0; i < limit; i++)
+    for(int i = 0; i < limit; i++)
     {
-        printf(" #%-3d | %-6d | %-20s | %-3c | %-5d\n",
+        printf(" #%-3d | %-6d | %-20s | %-7s | %-5d\n",
                i + 1, arr[i]->id, arr[i]->name, arr[i]->section, arr[i]->total_marks);
     }
-    printf("---------------------------------------------------------\n");
+    printf("------------------------------------------------------------\n");
     free(arr);
 }
 
-/* ----------------- Binary Search Implementation (Bar Graph) (2) ----------------- */
+/* ----------------- Binary Search Student Finder ----------------- */
 
 int binarySearch(struct Student *arr[], int low, int high, int target)
 {
     while (low <= high)
     {
         int mid = low + (high - low) / 2;
-        if (arr[mid]->id == target)
-            return mid;
-        if (arr[mid]->id < target)
-            low = mid + 1; // Array is sorted by ID ascending
-        else
-            high = mid - 1;
+        if (arr[mid]->id == target) return mid;
+        if (arr[mid]->id < target) low = mid + 1;
+        else high = mid - 1;
     }
     return -1;
 }
 
-void generateBarGraph()
+void searchStudentByID()
 {
-    char sec;
-    printf("\n--- [ OVERALL SECTION PERFORMANCE ] ---\n");
-    printf("Enter Section to view (e.g., A, B, C): ");
-    scanf(" %c", &sec);
+    int target_id;
+    printf("\n--- [ SEARCH STUDENT ] ---\n");
+    printf("Enter Student ID to search: ");
+    scanf("%d", &target_id);
 
     int n = countStudents();
-    if (n == 0)
+    if(n == 0)
     {
         printf("\nDatabase is empty.\n");
         return;
     }
 
-    struct Student **arr = malloc(n * sizeof(struct Student *));
+    struct Student **arr = malloc(n * sizeof(struct Student*));
     struct Student *curr = start;
-    for (int i = 0; i < n; i++)
+    for(int i = 0; i < n; i++)
     {
         arr[i] = curr;
         curr = curr->next;
     }
 
-    // Calculate averages for each course in the section
-    double courseAverages[5] = {0};
-    int studentCount = 0;
+    printf("\nExecuting Binary Search... ");
+    int index = binarySearch(arr, 0, n - 1, target_id);
 
-    for (int i = 0; i < n; i++)
+    if(index != -1)
     {
-        if (arr[i]->section == sec || arr[i]->section == sec - 32 || arr[i]->section == sec + 32)
-        {
-            studentCount++;
-            for (int c = 0; c < 5; c++)
-            {
-                courseAverages[c] += arr[i]->courses[c];
-            }
-        }
+        printf("Student Found!\n\n");
+        printf("ID: %d | Name: %s | Section: %s | Total Marks: %d\n",
+               arr[index]->id, arr[index]->name, arr[index]->section, arr[index]->total_marks);
     }
-
-    if (studentCount == 0)
+    else
     {
-        printf("\nNo students found in Section %c.\n", sec);
-        free(arr);
-        return;
-    }
-
-    // Calculate averages
-    for (int c = 0; c < 5; c++)
-    {
-        courseAverages[c] /= studentCount;
-    }
-
-    printf("\n--- [ SECTION %c: COURSE WISE AVERAGE PERFORMANCE ] ---\n", sec);
-    printf("Total Students in Section: %d\n\n", studentCount);
-
-    for (int c = 0; c < 5; c++)
-    {
-        printf("%s: %.2f\n", courseNames[c], courseAverages[c]);
-        int bars = (int)(courseAverages[c] / 2);
-        for (int b = 0; b < bars; b++)
-        {
-            printf("#");
-        }
-        printf("\n\n");
+        printf("Student not found!\n");
     }
 
     free(arr);
+}
+
+/* ----------------- Section Average Bar Graph ----------------- */
+
+void generateSectionBarGraph()
+{
+    char sec[15];
+    printf("\n--- [ SECTION AVERAGE BAR GRAPH ] ---\n");
+    printf("Enter Section to analyze (Ex: 68_A): ");
+    scanf("%14s", sec);
+
+    int sum[5] = {0, 0, 0, 0, 0};
+    int count = 0;
+
+    struct Student *i = start;
+    while(i != NULL)
+    {
+        if(strcmp(i->section, sec) == 0)
+        {
+            for(int c = 0; c < 5; c++)
+            {
+                sum[c] += i->courses[c];
+            }
+            count++;
+        }
+        i = i->next;
+    }
+
+    if(count == 0)
+    {
+        printf("\nNo students found in Section %s to generate a graph.\n", sec);
+        return;
+    }
+
+    printf("\nGenerating Bar Graph for Section %s (Total Students: %d)\n\n", sec, count);
+
+    const char *course_names[] =
+    {
+        "Algorithms(CSE213)                 ",
+        "Algorithms Lab(CSE214)             ",
+        "Engineering Mathematics(MAT211)    ",
+        "Discrete Mathematics(CSE212)       ",
+        "Bangladesh Studies(BNS101)         "
+    };
+
+    for(int c = 0; c < 5; c++)
+    {
+        float avg = (float)sum[c] / count;
+        printf("%s [Avg: %5.1f] : ", course_names[c], avg);
+
+        int bars = (int)(avg / 2); // 1 bar represents 2 marks visually
+        for(int b = 0; b < bars; b++)
+        {
+            printf("#");
+        }
+        printf("\n");
+    }
 }
 
 /* #################### MAIN MENU (1) #################### */
@@ -483,27 +487,28 @@ int main()
     loadData();
     int choice;
 
-    while (1)
+    while(1)
     {
-        printf("\n======================================================\n");
-        printf("           STUDENT MARKS ORGANIZER v1.0\n");
-        printf("======================================================\n");
-        printf(" [1] Add a New Student Record\n");
-        printf(" [2] View Top 3 Students (Quick Sort)\n");
-        printf(" [3] Explore Course Data by Section\n");
-        printf(" [4] Overall Section Performance\n");
-        printf(" [0] Exit the Program\n");
-        printf("======================================================\n");
+        printf("\n===========================================\n");
+        printf("      SMART STUDENT MARKS ORGANIZER    \n");
+        printf("===========================================\n");
+        printf(" [1] Add Student Record\n");
+        printf(" [2] Top 3 Ranking (CSE Dept.)\n");
+        printf(" [3] Explore by Section\n");
+        printf(" [4] View Section Wise Courses (Bar Graph)\n");
+        printf(" [5] Find Student\n");
+        printf(" [6] Remove Student\n");     
+        printf(" [0] Exit\n");
+        printf("===========================================\n");
         printf(" Select an option: ");
 
-        if (scanf("%d", &choice) != 1)
+        if(scanf("%d", &choice) != 1)
         {
-            while (getchar() != '\n')
-                ;
+            while(getchar()!='\n');
             continue;
         }
 
-        switch (choice)
+        switch(choice)
         {
         case 1:
             addStudentSorted();
@@ -515,10 +520,17 @@ int main()
             exploreBySection();
             break;
         case 4:
-            generateBarGraph();
+            generateSectionBarGraph();
+            break;
+        case 5:
+            searchStudentByID();
+            break;
+        case 6:                            // <--- ADDED CASE BLOCK HERE
+            removeStudentByID();
             break;
         case 0:
-            printf("\nExiting Student Marks Organizer...\n");
+            saveData();
+            printf("\n Exiting Smart Student marks Organizer..\n");
             exit(0);
         default:
             printf("Invalid Option. Please try again.\n");
