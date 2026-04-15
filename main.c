@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 /* ----------------- Structures (1) ----------------- */
 
@@ -20,6 +21,27 @@ struct Student
 };
 
 struct Student *start = NULL;
+
+int isValidName(const char *name)
+{
+    int hasLetter = 0;
+
+    for (int i = 0; name[i] != '\0'; i++)
+    {
+        unsigned char ch = (unsigned char)name[i];
+
+        if (isalpha(ch))
+        {
+            hasLetter = 1;
+        }
+        else if (!isspace(ch))
+        {
+            return 0;
+        }
+    }
+
+    return hasLetter;
+}
 
 /* ----------------- File Operations (2) ----------------- */
 
@@ -125,8 +147,16 @@ void addStudentSorted() // Inserts a student keeping the list constantly sorted 
     }
 
     // STEP 2: General Info
-    printf("Enter Student Name: ");
-    scanf(" %[^\n]", newnode->name);
+    while (1)
+    {
+        printf("Enter Student Name: ");
+        scanf(" %49[^\n]", newnode->name);
+
+        if (isValidName(newnode->name))
+            break;
+
+        printf("Invalid name! Please use letters and spaces only.\n");
+    }
 
     printf("Enter Section (e.g., A, B, C): ");
     scanf(" %c", &newnode->section);
