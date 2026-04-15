@@ -464,7 +464,7 @@ void generateBarGraph()
 
     for (int c = 0; c < 5; c++)
     {
-        printf("%s: %.2f\n", courseNames[c], courseAverages[c]);
+        printf("%s: %.2f ", courseNames[c], courseAverages[c]);
         int bars = (int)(courseAverages[c] / 2);
         for (int b = 0; b < bars; b++)
         {
