@@ -474,7 +474,7 @@ int main()
         printf(" [2] View Top 3 Students (Quick Sort)\n");
         printf(" [3] Explore Course Data by Section\n");
         printf(" [4] Generate Student Marks Bar Graph (Binary Search)\n");
-        printf(" [0] Save & Exit\n");
+        printf(" [0] Exit the Program\n");
         printf("======================================================\n");
         printf(" Select an option: ");
 
@@ -500,8 +500,7 @@ int main()
             generateBarGraph();
             break;
         case 0:
-            saveData();
-            printf("\nData saved. Exiting Student Marks Organizer...\n");
+            printf("\nExiting Student Marks Organizer...\n");
             exit(0);
         default:
             printf("Invalid Option. Please try again.\n");
